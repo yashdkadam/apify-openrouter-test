@@ -1,0 +1,8 @@
+{
+    "actorSpecification": 1,
+    "name": "openrouter-production-test",
+    "title": "OpenRouter Proxy Production Test",
+    "description": "Tests OpenRouter API proxy routing with integrated Apify wallet billing.",
+    "version": "1.0.0",
+    "dockerfile": null
+}
