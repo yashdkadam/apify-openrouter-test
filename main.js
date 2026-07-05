@@ -14,45 +14,41 @@ if (!apifyToken) {
     await Actor.exit();
 }
 
-// 3. Initialize OpenAI client to hit Apify's cross-provider OpenRouter tunnel
-const openai = new OpenAI({
-    apiKey: apifyToken,
-    baseURL: 'https://apify.actor',
+// 3. Initialize the OpenAI client pointing to the stable internal Apify tool gateway URL
+const client = new OpenAI({
+    baseURL: 'https://apify.com',
+    apiKey: apifyToken, 
 });
 
 try {
-    console.log('Initiating test prompt through the production Apify-OpenRouter bridge...');
+    console.log('Sending request to OpenRouter through your Apify Account...');
 
-    // 4. Dispatch chat completion payload
-    const response = await openai.chat.completions.create({
-        model: 'meta-llama/llama-3-8b-instruct',
+    // 4. Dispatch the chat completion payload matching your exact prompt and model
+    const completion = await client.chat.completions.create({
+        model: 'meta-llama/llama-3-70b-instruct', 
         messages: [
-            { role: 'user', content: 'Confirm connection and summarize your context window capacity.' }
+            { role: 'user', content: 'Hello! What model are you?' }
         ],
     });
 
-    const aiReply = response.choices[0]?.message?.content;
-
-    console.log('\n================ AI RESPONSE ================\n');
+    // 5. Output the response directly to the Apify execution logs
+    const aiReply = completion.choices[0]?.message?.content;
+    console.log('\n--- AI Response ---');
     console.log(aiReply);
-    console.log('\n=============================================\n');
-
-    // 5. Store tracking data directly into the default run dataset
+    console.log('-------------------\n');
+    
+    // 6. Push the results to your default run dataset
     await Actor.pushData({
         status: 'SUCCESS',
-        modelUsed: 'meta-llama/llama-3-8b-instruct',
-        aiOutput: aiReply,
-        billingMetadata: {
-            promptTokens: response.usage?.prompt_tokens,
-            completionTokens: response.usage?.completion_tokens,
-            totalTokens: response.usage?.total_tokens
-        }
+        model: 'meta-llama/llama-3-70b-instruct',
+        response: aiReply,
+        usage: completion.usage,
     });
 
 } catch (error) {
-    console.error('Production Integration Test Failure:', error.message);
+    console.error('Execution Error:', error.message);
     await Actor.fail(error);
 } finally {
-    // 6. Gracefully tear down the actor process container
+    // 7. Cleanly exit the Actor container process
     await Actor.exit();
 }
